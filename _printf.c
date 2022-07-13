@@ -11,7 +11,7 @@ int _printf(const char *format, ...)
 	int count = 0;
 	va_list argl;
 
-	if(format)
+	if (format)
 	{
 		va_start(argl, format);
 		str = format;
