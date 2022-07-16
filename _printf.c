@@ -1,111 +1,47 @@
 #include "main.h"
 
 /**
- * _printf - custom printf
- * @format: poiner to const char
- * Return: number of characters printed
+ * _printf - produces output according to a format
+ * @format: format string containing the characters and the specifiers
+ * Description: this function will call the get_print() function that will
+ * determine which printing function to call depending on the conversion
+ * specifiers contained into fmt
+ * Return: length of the formatted output string
  */
 int _printf(const char *format, ...)
 {
-	const char *str;
-	int count = 0;
-	va_list argl;
+	int (*p2func)(va_list, flags_t *);
+	const char *p;
+	va_list args;
+	flags_t flags = {0, 0, 0};
 
-	if (!format)
-	{
+	register int count = 0;
+
+	va_start(args, format);
+	if (!format || (format[0] == '%' && !format[1]))
 		return (-1);
-	}
-	va_start(argl, format);
-	str = format;
-	cont = loop(argl, str);
-	va_end(argl);
-	return (count);
-}
-/**
- * loop - loop format
- * @arg: va_list arg
- * @string: pointer from format
- * Description: This loops string pointer
- * Return: number of characteres printed
- */
-int loop(va_list arg, const char *string)
-{
-	int i = 0, flags = 0, count_fm = 0, count = 0, check_per = 0;
-
-	while (i < _strlen((char *)string) && *string != '\0')
+	if (format[0] == '%' && format[1] == ' ' && !format[2])
+		return (-1);
+	for (p = format; *p; p++)
 	{
-		char str = string[i];
-
-		if (str == '%')
+		if (*p == '%')
 		{
-			i++, flags++;
-			str = string[i];
-			if (str == '\0' && _strlen((char *)string) == 1)
-				return (-1);
-			if (str == '\0')
-				return (count);
-			if (str == '%')
+			p++;
+			if (*p == '%')
 			{
-				flags++;
-			} else
-			{
-				count_fm = function_manager(str, arg);
-				if (count_fm >= 0 && count_fm != -1)
-				{
-					i++;
-					str = string[i];
-					if (str == '%')
-						flags--;
-					count = count + count_fm;
-				} else if (count_fm == -1 && str != '\n')
-				{
-					count += _putchar('%');
-				}
+				count += _putchar('%');
+				continue;
 			}
-		}
-		check_per = check_percent(&flags, str);
-		count += check_per;
-		if (check_per == 0 && str != '\0' && str != '%')
-			count += _putchar(str), i++;
-		check_per = 0;
+			while (get_flag(*p, &flags))
+				p++;
+			p2func = get_print(*p);
+			count += (p2func)
+				? p2func(args, &flags)
+				: _printf("%%%c", *p);
+		} else
+			count += _putchar(*p);
 	}
+	_putchar(-1);
+	va_end(args);
 	return (count);
-}
-
-/**
- * check_percent - check for % sign
- * @flag: value by reference
- * @temp: character
- * Description: This function print %
- * Return: 1 if % is printed
- */
-int check_percent(int *flag, char temp)
-{
-	int temp_flag;
-	int cont = 0;
-
-	temp_flag = *flag;
-	if (temp_flag == 2 && temp == '%')
-	{
-		_putchar('%');
-		temp_flag = 0;
-		cont = 1;
-	}
-	return (cont);
-}
-
-/**
- * call_func - call function manager
- * @temp: character parameter
- * @argl: va_list argl
- * Description: This function call function manager
- * Return: num of characteres printed
- */
-
-int call_func(char temp, va_list argl)
-{
-	int cont = 0;
-
-	cont = function_manager(temp, argl);
-	return (cont);
 }
